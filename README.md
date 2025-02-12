@@ -1,4 +1,4 @@
-# samsung-riscv
+# Samsung-RISC-V-Talent--Development-Program
 ##  Basic Details
 
 **Name:** SHANKARGOUDA PATIL  
