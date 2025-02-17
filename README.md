@@ -752,149 +752,15 @@ Reference GitHub repo is [![GitHub](https://img.shields.io/badge/-GitHub-181717?
 <details>
    <summary><b>Task 5:Overview, Components Required, Circuit Connection, Pinout Diagram and Table for Pin connection required to build the display driver.</summary>
 
-# Developing a 7 segment display driver using VSDSquadron Mini
 
-## Overview
-The project presents an innovative integration of CH32V003 RISC-V processor to create a 7 segment LED display driver. The processor decodes the given number into its binary counterpart and according to the bits it gives signal to each segment whether it should glow or not. Thus, instead of setting the display manually everytime we can automate it. Currently we are driving only one display, future works will include integrating 2 displays together.
-
-## Components Required
-* VSDSquadron Mini
-* 1 seven segment display
-* Breadboard
-* Power Supply
-* Jumper Wires
-* Resistors
-
-## Circuit Connection
-* Connect the Common Anode/Cathode pin to VCC or GND via a resistor depending on the type of display.
-* Connect `PD0` to pin `a` of the display.
-* Connect `PC0` to pin `b` of the display.
-* Connect `PD2` to pin `c` of the display.
-* Connect `PD3` to pin `d` of the display.
-* Connect `PD4` to pin `e` of the display.
-* Connect `PD5` to pin `f` of the display.
-* Connect `PD6` to pin `g` of the display.
-
-The above pins recives the signals the on/off signals for the segments.
-
-## Pinout Diagram for the project
-The following diagram is for Common Cathode seven segment led:
-
-![diagram](https://github.com/user-attachments/assets/3f48ed70-0a26-402d-acac-4975a63a9954)
-
-
-
-## Table for Pin connection
-| SEVEN SEGMENT  | RISC-V |
-| -------------- | ------ |
-| a              | PD0    |
-| b              | PC0    |
-| c              | PD2    |
-| d              | PD3    |
-| e              | PD4    |
-| f              | PD5    |
-| g              | PD6    |
-| CA/CC          | VCC/GND|
-
-## Code uploaded on the board
-```
-#include <ch32v00x.h>
-#include <debug.h>
-
-// Define the GPIO pins for the driver
-#define a GPIO_Pin_0        // Pin for segment a
-#define b GPIO_Pin_1        // Pin for segment b (corrected to a different pin)
-#define c GPIO_Pin_2        // Pin for segment c
-#define d GPIO_Pin_3        // Pin for segment d      
-#define e GPIO_Pin_4        // Pin for segment e    
-#define f GPIO_Pin_5        // Pin for segment f    
-#define g GPIO_Pin_6        // Pin for segment g    
-
-int outar[] = {0, 0, 0, 0, 0, 0, 0};
-int out[] = {126, 48, 109, 121, 51, 91, 95, 112, 127, 123, 119, 31, 78, 61, 79, 71};
-
-// Function prototypes
-void GPIO_Config(void);
-void assign(int);
-
-// GPIO configuration function
-void GPIO_Config(void) {
-    GPIO_InitTypeDef GPIO_InitStructure = {0};
-
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE); // Enable clock for Port D
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE); // Enable clock for Port C
-
-    // Configure pin a as output
-    GPIO_InitStructure.GPIO_Pin = a;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOD, &GPIO_InitStructure);
-
-    // Configure pin b as output
-    GPIO_InitStructure.GPIO_Pin = b;
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
-
-    // Configure pin c as output
-    GPIO_InitStructure.GPIO_Pin = c;
-    GPIO_Init(GPIOD, &GPIO_InitStructure);
-
-    // Configure pin d as output
-    GPIO_InitStructure.GPIO_Pin = d;
-    GPIO_Init(GPIOD, &GPIO_InitStructure);
-
-    // Configure pin e as output
-    GPIO_InitStructure.GPIO_Pin = e;
-    GPIO_Init(GPIOD, &GPIO_InitStructure);
-
-    // Configure pin f as output
-    GPIO_InitStructure.GPIO_Pin = f;
-    GPIO_Init(GPIOD, &GPIO_InitStructure);
-
-    // Configure pin g as output
-    GPIO_InitStructure.GPIO_Pin = g;
-    GPIO_Init(GPIOD, &GPIO_InitStructure);
-}
-
-int main() {
-    // SystemCoreClockUpdate(); // Uncomment if needed
-    Delay_Init();
-    GPIO_Config();
-    
-    while (1) {
-        for (int i = 0; i < 16; i++) {
-            assign(i);
-            
-            // Set the GPIO pins based on the outar array
-            GPIO_WriteBit(GPIOD, a, outar[6] ? SET : RESET);
-            GPIO_WriteBit(GPIOC, b, outar[5] ? SET : RESET);
-            GPIO_WriteBit(GPIOD, c, outar[4] ? SET : RESET);
-            GPIO_WriteBit(GPIOD, d, outar[3] ? SET : RESET);
-            GPIO_WriteBit(GPIOD, e, outar[2] ? SET : RESET);
-            GPIO_WriteBit(GPIOD, f, outar[1] ? SET : RESET);
-            GPIO_WriteBit(GPIOD, g, outar[0] ? SET : RESET);
-            
-            Delay_Ms(5000); // Delay for 5 seconds
-        }
-    }
-}
-
-void assign(int num) {
-    int mask = 1;
-    for (int i = 0; i < 7; i++) {
-        outar[i] = (mask & out[num]) ? 1 : 0; // Set outar based on the current number
-        mask = mask << 1; // Shift the mask to check the next bit
-    }
-}
-```
----------------------------------------------------------------
 ## Final_project
 
-#task 4
+
 =
 
 # MAKING A GAME COSOLE USING VSDSQUADRON MINI
 
-![f575878f-6447-4391-aa24-13d8dac9a91f](https://github.com/NavaneethKumar237/Risc-v-internship/assets/167600626/1f3854c4-914c-476d-86c1-c3d3075f5d26)
+![f575878f-6447-4391-aa24-13d8dac9a91f](https://github.com/shankargoudap/Samsung-RISC-V-Talent--Development-Program/assets/167600626/1f3854c4-914c-476d-86c1-c3d3075f5d26)
 
 INTRODUCTION
 -
@@ -925,14 +791,14 @@ HARDWARE CONNECTIONS
 CIRCUIT DIAGRAM
 -
 
-![f575878f-6447-4391-aa24-13d8dac9a91f](https://github.com/NavaneethKumar237/Risc-v-internship/assets/167600626/1f3854c4-914c-476d-86c1-c3d3075f5d26)
+![f575878f-6447-4391-aa24-13d8dac9a91f](https://github.com/shankargoudap/Samsung-RISC-V-Talent--Development-Program/assets/167600626/1f3854c4-914c-476d-86c1-c3d3075f5d26)
 
 
 PINOUT
 -
- ![image](https://github.com/NavaneethKumar237/Risc-v-internship/assets/167600626/90fd5f59-ad37-4515-8948-5095136b599a)
+ ![image](https://github.com/shankargoudap/Samsung-RISC-V-Talent--Development-Program/assets/167600626/90fd5f59-ad37-4515-8948-5095136b599a)
 
-![image](https://github.com/NavaneethKumar237/Risc-v-internship/assets/167600626/251a0b5a-1739-4686-b5a4-379f28fa29b0)
+![image](https://github.com/shankargoudap/Samsung-RISC-V-Talent--Development-Program/assets/167600626/251a0b5a-1739-4686-b5a4-379f28fa29b0)
 
 
 SOFTWARE REQUIREMENTS
