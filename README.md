@@ -757,128 +757,95 @@ Reference GitHub repo is [![GitHub](https://img.shields.io/badge/-GitHub-181717?
 
 
 =
+# Project : CH32V003 RISC-V Mini Game Console
+## Overview
+The Handheld Gaming Console project integrates a RISC-V microcontroller to create a portable gaming system featuring a OLED display and tactile buttons. This console allows users to play classic games like Snake and Pong, with the RISC-V microcontroller managing game logic, user input, and rendering graphics. Additionally, a sound module provides audio feedback to enhance the gaming experience. This project demonstrates the innovative use of RISC-V technology in creating an immersive and interactive gaming solution.
+![GameConsole_pic1](https://github.com/shankargoudap/Samsung-RISC-V-Talent--Development-Program/assets/117591903/e3e6c984-1eec-407f-b5c5-ea7b3ac366c7)
 
-# MAKING A GAME COSOLE USING VSDSQUADRON MINI
-
-![f575878f-6447-4391-aa24-13d8dac9a91f](https://github.com/shankargoudap/Samsung-RISC-V-Talent--Development-Program/assets/167600626/1f3854c4-914c-476d-86c1-c3d3075f5d26)
-
-INTRODUCTION
--
-
-
-A game console is a device used to connect to a display for playing games. I have developed a game console using the VSDSquadron Mini. We used an OLED display to view the games, making it possible to play games directly on this compact and efficient setup. This application showcases the capabilities of the VSDSquadron Mini.
-
-OVERVIEW
--
-This is a smiple model of the game console had 5 push buttons and oled disply to show and a power switch 
-we need to connect all the all the components to vsdsquadron mini we have to upload the specific code in to it to get the desired game
-The heart of the game console is a RISC-V based microcontroller based vsd mini board  , providing an open-source, highly efficient, and customizable platform for many applications.
-
-------------------------------------------------------------
-LIST OF COMPONENTS
--
-1. VSDsquadron mini 
-2. 5 push buttons
-3. zero PCB
-4. jumper  wires
-5. OLED display
-6. Resistors of differnt values
-
-HARDWARE CONNECTIONS
-=
----------------------------------------------------------
-
-CIRCUIT DIAGRAM
--
-
-![f575878f-6447-4391-aa24-13d8dac9a91f](https://github.com/shankargoudap/Samsung-RISC-V-Talent--Development-Program/assets/167600626/1f3854c4-914c-476d-86c1-c3d3075f5d26)
+## Components Required
+1. VSDSquadron Mini
+2. Oled Display
+3. Push buttons (5)
+4. Capacitors (100nF, 10uF)
+5. Coin Battery (	CR2032)
+6. Resistors (1k, 2k, 3k, 20k, 8k)
+7. Buzzer (MLT-5030)
+8. Hreader pins
+9. BJT (	MMBT3906)
+10. Switch
 
 
-PINOUT
--
- ![image](https://github.com/shankargoudap/Samsung-RISC-V-Talent--Development-Program/assets/167600626/90fd5f59-ad37-4515-8948-5095136b599a)
+## Circuit Connections
+The VSDSquadron Mini RISC-V development boards features a RISC-V SoC with the following capabilities:
 
-![image](https://github.com/shankargoudap/Samsung-RISC-V-Talent--Development-Program/assets/167600626/251a0b5a-1739-4686-b5a4-379f28fa29b0)
+- On-board 24MHz RC oscillator
+-  3 groups of GPIO ports, totaling 15 I/O ports
+- USART, I2C, and SPI
+- UART implemented on USART
+- 2KB SRAM for volatile data storage, 16KB CodeFlash for program memory
+- On-board Programmer.
 
+The circuit connections are as follows:
+- **PA2** GPIO Pin is connected to one of the push bottons which controls the turn on/off of a game.
+- **PA1** is connected to the buzzer.
+- **PC4** is connected to the game controlling push buttons
+- **PC2** and **PC1** act as SCL(Serial Clock Line) and SDL(Seriel Data Line), these lines are used for I2C communication with OLED Display
+- And there are some VCC and GND connections.
+- Power switch connected to VCC and GND accordingly.
 
-SOFTWARE REQUIREMENTS
-=
-I have used the linux to upload the code we need to install the required tools related to the risc-v 
-next you need to Install the toolchain (GCC compiler, Python3, and PyUSB):
+  ![GameConsole_wiring](https://github.com/shankargoudap/Samsung-RISC-V-Talent--Development-Program/assets/117591903/1635d8a1-8faa-4052-a98d-c688ece05d02)
 
-```sudo apt install build-essential libnewlib-dev gcc-riscv64-unknown-elf
-sudo apt install python3 python3-pip
-python3 -m pip install pyus
+  ### Table for Pin connections
+
+![image](https://github.com/shankargoudap/Samsung-RISC-V-Talent--Development-Program/assets/117591903/93ad1ecf-48d7-44a6-ac2c-c30f88f1a42a)
+
+## My Circuit:
+![Presentation1](https://github.com/shankargoudap/Samsung-RISC-V-Talent--Development-Program/assets/117591903/abd1aca4-ba3a-471b-b7e2-3f2929d15c42)
+
+## Software
+I made one of my most played games of my childhood which is **PACMAN**.
+
+My code:
 ```
-
- Open a terminal and navigate to the folder with the makefile. Run the following command to compile and upload:
- ```
-make flash
- ```
-If you want to just upload the pre-compiled binary, run the following command instead:
-
-```
-python3 .tools/rvprog.py -f <firmware>.bin
-```
-
-Working code
--
-
-
-
-
-
-```
-
-#include <driver.h>           // TinyJoypad conversion driver
-#include <spritebank.h>       // grafix
+#include "driver.h"
+#include "spritebank.h"
 
 // ===================================================================================
 // Global Variables
 // ===================================================================================
-uint8_t Live = 0;
-uint8_t ShieldRemoved = 0;
-uint8_t MONSTERrest = 0;
-uint8_t LEVELS = 0;
-uint8_t SpeedShootMonster = 0;
-uint8_t ShipDead = 0;
-uint8_t ShipPos = 56;
-
-#define SHOOTS 2
+uint8_t LEVELSPEED;
+uint8_t GobbingEND;
+uint8_t LIVE;
+uint8_t INGAME;
+uint8_t Gobeactive;
+uint8_t TimerGobeactive;
+uint8_t add;
+uint8_t dotsMem[9];
+int8_t dotscount;
+uint8_t Frame;
+enum {PACMAN=0,FANTOME=1,FRUIT=2};
 
 // ===================================================================================
 // Function Prototypes
 // ===================================================================================
-void LoadMonstersLevels(int8_t Levels, SPACE *space);
-void SnD(int8_t Sp_, uint8_t SN);
-void SpeedControle(SPACE *space);
-void GRIDMonsterFloorY(SPACE *space);
-uint8_t LivePrint(uint8_t x, uint8_t y);
-void Tiny_Flip(uint8_t render0_picture1, SPACE *space);
-uint8_t UFOWrite(uint8_t x, uint8_t y, SPACE *space);
-void UFOUpdate(SPACE *space);
-void ShipDestroyByMonster(SPACE *space);
-void MonsterShootupdate(SPACE *space);
-void MonsterShootGenerate(SPACE *space);
-uint8_t MonsterShoot(uint8_t x, uint8_t y, SPACE *space);
-uint8_t ShieldDestroy(uint8_t Origine, uint8_t VarX, uint8_t VarY, SPACE *space);
-void ShieldDestroyWrite(uint8_t BOOLWRITE, uint8_t line, SPACE *space, uint8_t Origine);
-uint8_t MyShield(uint8_t x, uint8_t y, SPACE *space);
-uint8_t ShieldBlitz(uint8_t Part, uint8_t LineSH);
-uint8_t BOOLREAD(uint8_t SHnum, uint8_t LineSH, SPACE *space);
-void RemoveExplodOnMonsterGrid(SPACE *space);
-uint8_t background(uint8_t x, uint8_t y, SPACE *space);
-uint8_t Vesso(uint8_t x, uint8_t y, SPACE *space);
-void UFO_Attack_Check(uint8_t x, SPACE *space);
-uint8_t MyShoot(uint8_t x, uint8_t y, SPACE *space);
-void Monster_Attack_Check(SPACE *space);
-int8_t OuDansLaGrilleMonster(uint8_t x, uint8_t y, SPACE *space);
-uint8_t SplitSpriteDecalageY(uint8_t Input, uint8_t UPorDOWN, SPACE *space);
-uint8_t Murge_Split_UP_DOWN(uint8_t x, SPACE *space);
-uint8_t WriteMonster14(uint8_t x);
-uint8_t Monster(uint8_t x, uint8_t y, SPACE *space);
-uint8_t MonsterRefreshMove(SPACE *space);
-void VarResetNewLevel(SPACE *space);
+void ResetVar(void);
+void StartGame(PERSONAGE *Sprite);
+uint8_t CollisionPac2Caracter(PERSONAGE *Sprite);
+void RefreshCaracter(PERSONAGE *Sprite);
+uint8_t CheckCollisionWithBack(uint8_t SpriteCheck,uint8_t HorVcheck,PERSONAGE *Sprite);
+uint8_t RecupeBacktoCompV(uint8_t SpriteCheck,PERSONAGE *Sprite);
+uint8_t Trim(uint8_t Y1orY2,uint8_t TrimValue,uint8_t Decalage);
+uint8_t RecupeBacktoCompH(uint8_t SpriteCheck,PERSONAGE *Sprite);
+void Tiny_Flip(uint8_t render0_picture1,PERSONAGE *Sprite);
+uint8_t FruitWrite(uint8_t x,uint8_t y);
+uint8_t LiveWrite(uint8_t x,uint8_t y);
+uint8_t DotsWrite(uint8_t x,uint8_t y,PERSONAGE *Sprite);
+uint8_t checkDotPresent(uint8_t  DotsNumber);
+void DotsDestroy(uint8_t DotsNumber);
+uint8_t SplitSpriteDecalageY(uint8_t decalage,uint8_t Input,uint8_t UPorDOWN);
+uint8_t SpriteWrite(uint8_t x,uint8_t y,PERSONAGE  *Sprite);
+uint8_t return_if_sprite_present(uint8_t x,PERSONAGE  *Sprite,uint8_t SpriteNumber);
+uint8_t background(uint8_t x,uint8_t y);
 
 // ===================================================================================
 // Main Function
@@ -889,97 +856,105 @@ int main(void) {
 
   // Loop
   while(1) {
-    uint8_t Decompte = 0;
-    uint8_t VarPot;
-    uint8_t MyShootReady = SHOOTS;
-    SPACE space;
-
+    uint8_t t;
+    PERSONAGE Sprite[5];
   NEWGAME:
-    Live = 3;
-    LEVELS = 0;
-    Tiny_Flip(1, &space);
-    while(1) {
-      if(JOY_act_pressed()) {
-        JOY_sound(100, 125); JOY_sound(50, 125);
-        goto BYPASS2;
+    ResetVar();
+    LIVE=3;
+    goto New;
+  NEWLEVEL:
+    if(LEVELSPEED > 10) {
+      LEVELSPEED=LEVELSPEED - 10;
+      if((LEVELSPEED==160)||(LEVELSPEED==120)||(LEVELSPEED==80)||(LEVELSPEED==40)||(LEVELSPEED==10)) {    
+        if(LIVE < 3) {
+          LIVE++; 
+          for(t=0; t<=4; t++) {
+            JOY_sound(80,100);
+            JOY_DLY_ms(300);
+          }
+        }
       }
     }
-
-  NEWLEVEL:
-    JOY_DLY_ms(1000);
-
-  BYPASS2:
-    VarResetNewLevel(&space);
-    SpeedControle(&space);
-    VarPot = 54;
-    ShipPos = 56;
-    space.ScrBackV=(ShipPos / 14) + 52;
-    goto Bypass;
-
-  RestartLevel:
-    if(Live > 0) Live--;
-    else goto NEWGAME;
-
-  Bypass:
-    ShipDead = 0;
-    Decompte = 0;
-    Tiny_Flip(0, &space);
-    JOY_DLY_ms(1000);
+  New:
+    GobbingEND = (LEVELSPEED / 2);
+    for(t=0; t<9; t++) dotsMem[t]=0xff;
+  RESTARTLEVEL:
+    Gobeactive = 0;
+    uint8_t* ptr = (uint8_t*)Sprite;
+    for(t=5*10; t; t--) *ptr++ = 0;
+    Sprite[0].type=PACMAN;
+    Sprite[0].x=64;
+    Sprite[0].y=3;
+    Sprite[0].Decalagey=5;
+    Sprite[0].DirectionV=2;
+    Sprite[0].DirectionH=2;
+    Sprite[0].DirectionAnim=0;
+    Sprite[1].type=FANTOME;
+    Sprite[1].x=76;
+    Sprite[1].y=4;
+    Sprite[1].guber=0;
+    Sprite[2].type=FANTOME;
+    Sprite[2].x=75;
+    Sprite[2].y=5;
+    Sprite[2].guber=0;
+    Sprite[3].type=FANTOME;
+    Sprite[3].x=77;
+    Sprite[3].y=4;
+    Sprite[3].guber=0;
+    Sprite[4].type=FANTOME;
+    Sprite[4].x=76;
+    Sprite[4].y=5;
+    Sprite[4].guber=0;
     while(1) {
-      if(MONSTERrest == 0) { 
-        JOY_sound(110, 255); JOY_DLY_ms(40); JOY_sound(130, 255); JOY_DLY_ms(40);
-        JOY_sound(100, 255); JOY_DLY_ms(40); JOY_sound(1, 155);   JOY_DLY_ms(20);
-        JOY_sound(60, 255);  JOY_sound(60, 255);
-        if(LEVELS < 9) LEVELS++;
-        goto NEWLEVEL;
+      //joystick
+      if(JOY_act_pressed()) StartGame(&Sprite[0]);
+      if(INGAME) {
+        if(JOY_left_pressed()) Sprite[0].DirectionV = 0;
+        else if(JOY_right_pressed()) Sprite[0].DirectionV = 1;
+        if(JOY_down_pressed()) Sprite[0].DirectionH =1 ;
+        else if(JOY_up_pressed()) Sprite[0].DirectionH = 0;
+        //fin joystick
+        if(TimerGobeactive > 1) TimerGobeactive--;
+        else if (TimerGobeactive == 1) {
+          TimerGobeactive = 0;
+          Gobeactive = 0;
+        }
       }
-      if((((space.MonsterGroupeYpos) + (space.MonsterFloorMax + 1)) == 7) && (Decompte == 0)) ShipDead = 1;
-      if(SpeedShootMonster <= 9 - LEVELS) SpeedShootMonster++;
-      else {SpeedShootMonster = 0; MonsterShootGenerate(&space);}
-      space.ScrBackV = (ShipPos / 14) + 52;
-      Tiny_Flip(0, &space);
-      space.oneFrame = !space.oneFrame;
-      RemoveExplodOnMonsterGrid(&space);
-      MonsterShootupdate(&space);
-      UFOUpdate(&space);
-      if(((space.MonsterGroupeXpos >= 26) && (space.MonsterGroupeXpos <= 28))
-        && (space.MonsterGroupeYpos == 2) && (space.DecalageY8 == 4)) space.UFOxPos = 127;
-      if(VarPot > (ShipPos + 2)) ShipPos = ShipPos + ((VarPot - ShipPos) / 3);
-      if(VarPot < (ShipPos - 2)) ShipPos = ShipPos - ((ShipPos - VarPot) / 3);
-      if(ShipDead != 1) {
-        if(space.frame < space.frameMax) space.frame++;
-        else {
-          GRIDMonsterFloorY(&space);
-          space.anim = !space.anim;
-          if(space.anim == 0) SnD(space.UFOxPos, 200);
-          else SnD(space.UFOxPos, 100);
-          MonsterRefreshMove(&space);
-          space.frame = 0;
+      if(Frame < 24) Frame++;
+      else Frame = 0;
+      if(CollisionPac2Caracter(&Sprite[0]) == 0) RefreshCaracter(&Sprite[0]);
+      else {
+        JOY_sound(100, 200); JOY_sound(75, 200); JOY_sound(50, 200); JOY_sound(25, 200);
+        JOY_sound(12, 200); JOY_DLY_ms(400);
+        if(LIVE > 0) {
+          LIVE--;
+          goto RESTARTLEVEL;
         }
-
-        if(JOY_left_pressed()) {
-          if(VarPot > 5) VarPot = VarPot - 6;
-        }
-        if(JOY_right_pressed()) {
-          if(VarPot < 108) VarPot = VarPot + 6;
-        }
-        if((JOY_act_pressed()) && (MyShootReady == SHOOTS)) {
-          JOY_sound(200, 4); MyShootReady = 0; space.MyShootBall = 6; space.MyShootBallxpos = ShipPos + 6;
+        else goto NEWGAME;
+      }
+      if(Frame % 2 == 0) {
+        Tiny_Flip(0, &Sprite[0]);
+        if(INGAME == 1) {
+          for(uint8_t t=0; t<=139; t=t+2) {
+            JOY_sound((Music[t]) - 8, ((Music[t + 1]) - 100)); 
+          }
+          INGAME = 2;
         }
       }
       else {
-        JOY_sound(80, 1); JOY_sound(100, 1); 
-        Decompte++;
-        if(Decompte >= 30) {
-          JOY_DLY_ms(600);
-          if(((space.MonsterGroupeYpos) + (space.MonsterFloorMax + 1)) == 7) goto NEWGAME;
-          else goto RestartLevel;
+        for(t=0; t<63; t++) {
+          if(checkDotPresent(t)) break;
+          else if(t == 62) {
+            for(uint8_t r=0; r<60; r++) {
+              JOY_sound(2 + r, 10); JOY_sound(255 - r, 20);
+            }
+            JOY_DLY_ms(1000);
+            goto NEWLEVEL;
+          }
         }
       }
-      if(space.MyShootBall == -1) {
-        if(MyShootReady<SHOOTS) MyShootReady++;
-      }
-    JOY_SLOWDOWN();
+      if((Gobeactive) && (Frame % 2 == 0)) JOY_sound((255 - TimerGobeactive), 1);
+      JOY_SLOWDOWN();
     }
   }
 }
@@ -987,493 +962,290 @@ int main(void) {
 // ===================================================================================
 // Functions
 // ===================================================================================
-void LoadMonstersLevels(int8_t Levels, SPACE *space) {
-  uint8_t x, y;
-  for(y=0; y<5; y++) {
-    for(x=0; x<6; x++) {
-      if(y!=4) space->MonsterGrid[y][x] = MonstersLevels[(Levels * 24) + (y * 6) + x];
-      else     space->MonsterGrid[y][x] = -1;
-    }
-  }
+void ResetVar(void){
+LEVELSPEED=200;
+GobbingEND=0;
+LIVE=3;
+Gobeactive=0;
+TimerGobeactive=0;
+add=0;
+INGAME=0;
+for(uint8_t t=0;t<9;t++){
+dotsMem[t]=0xff;}
+dotscount=0;
+Frame=0;}
+
+void StartGame(PERSONAGE *Sprite){
+if (INGAME==0) {
+Sprite[1].x=76;
+Sprite[1].y=3;
+Sprite[2].x=75;
+Sprite[2].y=4;
+Sprite[3].x=77;
+Sprite[3].y=3;
+Sprite[4].x=76;
+Sprite[4].y=4;
+INGAME=1;}}
+
+uint8_t CollisionPac2Caracter(PERSONAGE *Sprite){
+uint8_t ReturnCollision=0;
+#define xmax(I) (Sprite[I].x+6)
+#define xmin(I) (Sprite[I].x)
+#define ymax(I) ((Sprite[I].y*8)+Sprite[I].Decalagey+6)
+#define ymin(I) ((Sprite[I].y*8)+Sprite[I].Decalagey)
+if ((INGAME)) {    
+for (uint8_t t=1;t<=4;t++){
+if ((xmax(0)<xmin(t))||(xmin(0)>xmax(t))||(ymax(0)<ymin(t))||(ymin(0)>ymax(t))) {}else{ 
+if (Gobeactive) {if (Sprite[t].guber!=1) {JOY_sound(20,100);JOY_sound(2,100);}Sprite[t].guber=1;ReturnCollision=0;}else{ if (Sprite[t].guber==1) {ReturnCollision=0;}else{ReturnCollision=1;}}
+}}}return ReturnCollision;}
+
+void RefreshCaracter(PERSONAGE *Sprite){
+uint8_t memx,memy,memdecalagey;
+for (uint8_t t=0;t<=4;t++){
+memx=Sprite[t].x;
+memy=Sprite[t].y;
+memdecalagey=Sprite[t].Decalagey;
+if ((Sprite[t].y>-1)&&(Sprite[t].y<8)) {
+if ((Frame%2==0)||(t==0)||(LEVELSPEED<=160)) {
+if (Sprite[t].DirectionV==1) {Sprite[t].x++;}
+if (Sprite[t].DirectionV==0) {
+if (t==0) {
+if ((Sprite[0].y==3)&&(Sprite[0].x==86)){}else{Sprite[t].x--;}
+}else{Sprite[t].x--;}
+}}}
+if (CheckCollisionWithBack(t,1,Sprite)) {
+if (t!=0) {Sprite[t].DirectionV=JOY_random()%2;}else{ Sprite[t].DirectionV=2;}
+Sprite[t].x=memx;
+}
+if ((Frame%2==0)||(t==0)||(LEVELSPEED<=160)) {
+if (Sprite[t].DirectionH==1) {if (Sprite[t].Decalagey<7) {Sprite[t].Decalagey++;}else{Sprite[t].Decalagey=0;Sprite[t].y++;if (Sprite[t].y==9) {Sprite[t].y=-1;}}}
+if (Sprite[t].DirectionH==0) {if (Sprite[t].Decalagey>0) {Sprite[t].Decalagey--;}else{Sprite[t].Decalagey=7;Sprite[t].y--;if (Sprite[t].y==-2) {Sprite[t].y=8;}}}
+}
+if (CheckCollisionWithBack(t,0,Sprite)) {
+if (t!=0) {Sprite[t].DirectionH=JOY_random()%2;}else{Sprite[t].DirectionH=2;}
+Sprite[t].y=memy;
+Sprite[t].Decalagey=memdecalagey;
+}
+if (t==0) {
+if (Frame%2==0) {
+if (Sprite[t].DirectionH==1) {Sprite[t].DirectionAnim=0;}
+if (Sprite[t].DirectionH==0) {Sprite[t].DirectionAnim=(2*3);} 
+if (Sprite[t].DirectionV==1) {Sprite[t].DirectionAnim=(3*3);}
+if (Sprite[t].DirectionV==0) {Sprite[t].DirectionAnim=(1*3);}
+}}else{
+if ((Frame==0)||(Frame==12)) {
+Sprite[t].DirectionAnim=0;
+if (Sprite[t].DirectionH==1) {Sprite[t].DirectionAnim=0;}
+if (Sprite[t].DirectionH==0) {Sprite[t].DirectionAnim=2;}
+}}
+if (t==0) {
+if (Frame%2==0) {
+if (Sprite[0].switchanim==0) {
+if (Sprite[0].anim<2) {Sprite[0].anim++;}else{Sprite[0].switchanim=1;} 
+}else{
+if (Sprite[0].anim>0) {Sprite[0].anim--;}else{Sprite[0].switchanim=0;}  
+}}}else{
+if ((Sprite[t].guber==1)&&(Sprite[t].x>=74)&&(Sprite[t].x<=76)&&(Sprite[t].y>=2)&&(Sprite[t].y<=4)) {Sprite[t].guber=0;}
+if  (Frame%2==0) {
+if (Sprite[t].anim<1) {Sprite[t].anim++;}else{Sprite[t].anim=0; } 
+}}}}
+
+uint8_t CheckCollisionWithBack(uint8_t SpriteCheck,uint8_t HorVcheck,PERSONAGE *Sprite){
+uint8_t BacktoComp;
+if (HorVcheck==1) {
+BacktoComp=RecupeBacktoCompV(SpriteCheck,Sprite); 
+}else{
+BacktoComp=RecupeBacktoCompH(SpriteCheck,Sprite);}
+if ((BacktoComp)!=0) {return 1;}else{return 0;}}
+
+uint8_t RecupeBacktoCompV(uint8_t SpriteCheck,PERSONAGE *Sprite){
+uint8_t Y1=0b00000000;
+uint8_t Y2=Y1;
+#define SpriteWide 6
+#define MAXV (Sprite[SpriteCheck].x+SpriteWide)
+#define MINV (Sprite[SpriteCheck].x)
+if (Sprite[SpriteCheck].DirectionV==1) {
+Y1=(back[((Sprite[SpriteCheck].y)*128)+(MAXV)]);
+Y2=(back[((Sprite[SpriteCheck].y+1)*128)+(MAXV)]);
+}else if (Sprite[SpriteCheck].DirectionV==0) {
+Y1=(back[((Sprite[SpriteCheck].y)*128)+(MINV)]);
+Y2=(back[((Sprite[SpriteCheck].y+1)*128)+(MINV)]);
+}else{Y1=0;Y2=0;}
+//decortique
+Y1=Trim(0,Y1,Sprite[SpriteCheck].Decalagey);
+Y2=Trim(1,Y2,Sprite[SpriteCheck].Decalagey);
+if (((Y1)!=0b00000000)||((Y2)!=0b00000000) ) {return 1;}else{return 0;}
 }
 
-void SnD(int8_t Sp_, uint8_t SN) {
-  if(Sp_ != -120) {JOY_sound(220, 8); JOY_sound(200, 4);}
-  else JOY_sound(SN, 1);
+uint8_t Trim(uint8_t Y1orY2,uint8_t TrimValue,uint8_t Decalage){
+uint8_t Comp;
+if (Y1orY2==0) {
+Comp=0b01111111<<Decalage;
+return (TrimValue&Comp);
+}else{
+Comp=(0b01111111>>(8-Decalage));
+return (TrimValue&Comp);
+}}
+
+uint8_t ScanHRecupe(uint8_t UporDown,uint8_t Decalage){
+if (UporDown==0){
+return 0b01111111<<Decalage;}
+else{
+return 0b01111111>>(8-Decalage);
+}}
+
+uint8_t RecupeBacktoCompH(uint8_t SpriteCheck,PERSONAGE *Sprite){
+uint8_t TempPGMByte;
+if (Sprite[SpriteCheck].DirectionH==0) {
+uint8_t RECUPE=(ScanHRecupe(0,Sprite[SpriteCheck].Decalagey));
+for(uint8_t t=0;t<=6;t++){
+if ((((Sprite[SpriteCheck].y)*128)+(Sprite[SpriteCheck].x+t)>1023)||(((Sprite[SpriteCheck].y)*128)+(Sprite[SpriteCheck].x+t)<0)) {TempPGMByte=0x00;}else{
+ TempPGMByte=((back[((Sprite[SpriteCheck].y)*128)+(Sprite[SpriteCheck].x+t)])); 
+}
+#define CHECKCOLLISION ((RECUPE)&(TempPGMByte))
+if  (CHECKCOLLISION!=0) {return 1;}
+}}else if (Sprite[SpriteCheck].DirectionH==1) {
+uint8_t tadd=0;
+if (Sprite[SpriteCheck].Decalagey>2) { tadd=1;}else{tadd=0;}
+uint8_t RECUPE=(ScanHRecupe(tadd,Sprite[SpriteCheck].Decalagey));
+for(uint8_t t=0;t<=6;t++){
+if (((((Sprite[SpriteCheck].y+tadd)*128)+(Sprite[SpriteCheck].x+t))>1023)||((((Sprite[SpriteCheck].y+tadd)*128)+(Sprite[SpriteCheck].x+t))<0)) {TempPGMByte=0x00;}else{
+TempPGMByte=(back[((Sprite[SpriteCheck].y+tadd)*128)+(Sprite[SpriteCheck].x+t)]);
+}
+#define CHECKCOLLISION2 ((RECUPE)&(TempPGMByte))
+if  (CHECKCOLLISION2!=0) {return 1;}
+}}return 0;}
+
+void Tiny_Flip(uint8_t render0_picture1,PERSONAGE *Sprite){
+uint8_t y,x; 
+dotscount=-1;
+for (y = 0; y < 8; y++){ 
+JOY_OLED_data_start(y);
+for (x = 0; x < 128; x++){
+if (render0_picture1==0) {
+if (INGAME) {JOY_OLED_send(background(x,y)|SpriteWrite(x,y,Sprite)|DotsWrite(x,y,Sprite)|LiveWrite(x,y)|FruitWrite(x,y));}else{
+JOY_OLED_send(0xff-(background(x,y)|SpriteWrite(x,y,Sprite)));
+}}else if (render0_picture1==1){
+JOY_OLED_send((back[x+(y*128)]));}}
+JOY_OLED_end();
+}}
+
+uint8_t FruitWrite(uint8_t x,uint8_t y){
+switch(y){
+  case 7:if (x<=7) {return (fruits[x]);}break;
+  case 6:if ((LEVELSPEED<=190)&&(x<=7)) {return (fruits[x+8]);}break;
+  case 5:if ((LEVELSPEED<=180)&&(x<=7)) {return (fruits[x+16]);}break;
+  case 4:if ((LEVELSPEED<=170)&&(x<=7)) {return (fruits[x+24]);}break;
+}return 0;}
+
+uint8_t LiveWrite(uint8_t x,uint8_t y){
+if (y<LIVE) {if (x<=7) {return (caracters[x+(1*8)]);}else{return 0;}
+}return 0x00;}
+
+uint8_t DotsWrite(uint8_t x,uint8_t y,PERSONAGE *Sprite){
+uint8_t Menreturn=0;
+uint8_t mem1=(dots[x+(128*y)]);
+if (mem1!=0b00000000) {
+dotscount++;
+ switch(dotscount){
+  case 0:  
+  case 1: 
+  case 12: 
+  case 13: 
+  case 50:
+  case 51:
+  case 62:
+  case 63:Menreturn=1;break;
+  default:Menreturn=0;break;
+}
+if (checkDotPresent(dotscount)==0b00000000) {mem1=0x00;}else{
+if ((Sprite[0].type==PACMAN)&&((Sprite[0].x<x)&&(Sprite[0].x>x-6))&&(((Sprite[0].y==y)&&(Sprite[0].Decalagey<6))||((Sprite[0].y==y-1)&&(Sprite[0].Decalagey>5)))) {DotsDestroy(dotscount);if (Menreturn==1) {TimerGobeactive=LEVELSPEED;Gobeactive=1;}else{JOY_sound(10,10);JOY_sound(50,10);}}
+}}
+if (Menreturn==1) {
+if (((Frame>=6)&&(Frame<=12))||((Frame>=18)&&(Frame<=24))) {
+return 0x00;
+}else{return mem1;}
+}else{return mem1;}}
+
+uint8_t checkDotPresent(uint8_t  DotsNumber){
+uint8_t REST=DotsNumber;
+uint8_t DOTBOOLPOSITION=0;
+DECREASE:
+if (REST>=8) {REST=REST-8;DOTBOOLPOSITION++;goto DECREASE;}
+return ((dotsMem[DOTBOOLPOSITION])&(0b10000000>>REST));
 }
 
-void SpeedControle(SPACE *space) {
-  uint8_t xx, yy;
-  MONSTERrest = 0;
-  for(yy=0; yy<4; yy++) {
-    for(xx=0; xx<6; xx++) {
-      if((space->MonsterGrid[yy][xx] != -1) && ((space->MonsterGrid[yy][xx] <=5 ))) MONSTERrest++;
-    }
-  }
-  space->frameMax = (MONSTERrest >> 3);
+void DotsDestroy(uint8_t DotsNumber){
+uint8_t REST=DotsNumber;
+uint8_t DOTBOOLPOSITION=0;
+uint8_t SOUSTRAIRE;
+DECREASE:
+if (REST>=8) {REST=REST-8;DOTBOOLPOSITION=DOTBOOLPOSITION+1;goto DECREASE;}
+switch(REST){
+  case (0):SOUSTRAIRE=0b01111111;break;
+  case (1):SOUSTRAIRE=0b10111111;break;
+  case (2):SOUSTRAIRE=0b11011111;break;
+  case (3):SOUSTRAIRE=0b11101111;break;
+  case (4):SOUSTRAIRE=0b11110111;break;
+  case (5):SOUSTRAIRE=0b11111011;break;
+  case (6):SOUSTRAIRE=0b11111101;break;
+  case (7):SOUSTRAIRE=0b11111110;break;
+}
+dotsMem[DOTBOOLPOSITION]=dotsMem[DOTBOOLPOSITION]&SOUSTRAIRE;
 }
 
-// Thanks to Sven Bruns for informing me of an error in this function!
-void GRIDMonsterFloorY(SPACE *space) {
-  uint8_t y,x;
-  space->MonsterFloorMax = 3;
-  for(y=0; y<4; y++) {
-    for(x=0; x<6; x++) {
-      if(space->MonsterGrid[3-y][x] != -1) return;
-    }
-    space->MonsterFloorMax = space->MonsterFloorMax - 1;
-  }
+uint8_t SplitSpriteDecalageY(uint8_t decalage,uint8_t Input,uint8_t UPorDOWN){
+if (UPorDOWN) {
+return Input<<decalage;
+}else{
+return Input>>(8-decalage); 
+}}
+
+uint8_t SpriteWrite(uint8_t x,uint8_t y,PERSONAGE  *Sprite){
+uint8_t var1=0;
+uint8_t AddBin=0b00000000;
+while(1){ 
+if (Sprite[var1].y==y) {
+AddBin=AddBin|SplitSpriteDecalageY(Sprite[var1].Decalagey,return_if_sprite_present(x,Sprite,var1),1);
+}else if (((Sprite[var1].y+1)==y)&&(Sprite[var1].Decalagey!=0)) {
+AddBin=AddBin|SplitSpriteDecalageY(Sprite[var1].Decalagey,return_if_sprite_present(x,Sprite,var1),0);
 }
-
-uint8_t LivePrint(uint8_t x, uint8_t y) {
-  #define XLIVEWIDE ((5 * Live) - 1)
-  if((0 >= (x - XLIVEWIDE)) && (y == 7)) {
-    return LIVE[x];
-  }
-  return 0x00;
+var1++;
+if (var1==5) {break;}
+}return AddBin;}
+  
+uint8_t return_if_sprite_present(uint8_t x,PERSONAGE  *Sprite,uint8_t SpriteNumber){
+uint8_t ADDgobActive;
+uint8_t ADDGober;
+if  ((x>=Sprite[SpriteNumber].x)&&(x<(Sprite[SpriteNumber].x+8))) { 
+if (SpriteNumber!=0) { 
+if (Sprite[SpriteNumber].guber==1) {
+ADDgobActive=1*(4*8);
+ADDGober=Sprite[SpriteNumber].guber*(4*8);
+}else{
+if ((((Frame>=6)&&(Frame<=12))||((Frame>=18)&&(Frame<=24)))||(TimerGobeactive>GobbingEND)) {ADDgobActive=Gobeactive*(4*8);}else{ADDgobActive=0;}
+ADDGober=0;
+}}else{
+ADDGober=0;
+ADDgobActive=0;
 }
+if ((INGAME==0)&&(SpriteNumber==0)) {  return 0;}     
+return (caracters[((x-Sprite[SpriteNumber].x)+(8*(Sprite[SpriteNumber].type*12)))+(Sprite[SpriteNumber].anim*8)+(Sprite[SpriteNumber].DirectionAnim*8)+(ADDgobActive)+(ADDGober)]);
+}return 0;}
 
-void Tiny_Flip(uint8_t render0_picture1, SPACE *space) {
-  uint8_t y, x; 
-  uint8_t MYSHIELD = 0x00;
-  for(y=0; y<8; y++) {
-    JOY_OLED_data_start(y);
-    for(x=0; x<128; x++) {
-      if(render0_picture1 == 0) {
-        if(ShieldRemoved == 0) MYSHIELD = MyShield(x, y, space);
-        else MYSHIELD = 0x00;
-        JOY_OLED_send( background(x, y, space)
-                       | LivePrint(x, y) 
-                       | Vesso(x, y, space)
-                       | UFOWrite(x, y, space)
-                       | Monster(x, y, space)
-                       | MyShoot(x, y, space)
-                       | MonsterShoot(x, y, space)
-                       | MYSHIELD);
-      }
-      else JOY_OLED_send(intro[x + (y * 128)]);
-    }
-    if(render0_picture1 == 0) {
-      if(ShieldRemoved == 0) ShieldDestroy(0, space->MyShootBallxpos, space->MyShootBall, space);
-    }
-    JOY_OLED_end();
-  }
-  if(render0_picture1 == 0) {
-    if(!(space->MonsterGroupeYpos < (2 + (4 - (space->MonsterFloorMax + 1))))) {
-      if(ShieldRemoved != 1) {
-        space->Shield[0] = 0x00;
-        space->Shield[1] = 0x00;
-        space->Shield[2] = 0x00;
-        space->Shield[3] = 0x00;
-        space->Shield[4] = 0x00;
-        space->Shield[5] = 0x00;
-        ShieldRemoved = 1;
-      }
-    }
-  }
-}
-
-uint8_t UFOWrite(uint8_t x, uint8_t y, SPACE *space) {
-  if((space->UFOxPos != -120) && (y == 0) && (space->UFOxPos <= x) && (space->UFOxPos >= (x - 14)))
-    return Monsters[(x - space->UFOxPos) + (6 * 14) + (space->oneFrame * 14)];
-  return 0x00;
-}
-
-void UFOUpdate(SPACE *space) {
-  if(space->UFOxPos != -120) {
-    space->UFOxPos = space->UFOxPos - 2;
-    SnD(space->UFOxPos, 0);
-    if(space->UFOxPos <= -20) space->UFOxPos = -120;
-  }
-}
-
-void ShipDestroyByMonster(SPACE *space) {
-  if((space->MonsterShoot[1] >= 14) && (space->MonsterShoot[1] <= 15) 
-  && (space->MonsterShoot[0] >= ShipPos) && (space->MonsterShoot[0] <= ShipPos+14))
-    ShipDead=1;
-}
-
-void MonsterShootupdate(SPACE *space) {
-  if(space->MonsterShoot[1] != 16) {
-    ShipDestroyByMonster(space);
-    if(ShieldDestroy(1, space->MonsterShoot[0], space->MonsterShoot[1] >> 1, space))
-      space->MonsterShoot[1] = 16;
-    else
-      space->MonsterShoot[1] = space->MonsterShoot[1] + 1;
-  }
-}
-
-void MonsterShootGenerate(SPACE *space) {
-  uint8_t a = JOY_random() % 3; 
-  uint8_t b = JOY_random() % 6; 
-  if(b >= 5) b = 5;
-  if(space->MonsterShoot[1] == 16) {
-    if(space->MonsterGrid[a][b] != -1) {
-      space->MonsterShoot[0] = (space->MonsterGroupeXpos + 7) + (b * 14);
-      space->MonsterShoot[1] = ((space->MonsterGroupeYpos + a) * 2) + 1;
-    }
-  }
-}
-
-uint8_t MonsterShoot(uint8_t x, uint8_t y, SPACE *space) {
-  if(((space->MonsterShoot[1] >> 1) == y) && (space->MonsterShoot[0] == x)) {
-    if((space->MonsterShoot[1] & 1) == 0) return 0b00001111;
-    else return 0b11110000;
-  }
-  return 0x00;
-}
-
-uint8_t ShieldDestroy(uint8_t Origine, uint8_t VarX, uint8_t VarY, SPACE *space) {
-  #define OFFSETXSHIELD -1
-  if(VarY == 6) {
-    if((VarX >= 20 + OFFSETXSHIELD) && (VarX <= 27 + OFFSETXSHIELD)) {
-      if(BOOLREAD(0, VarX - (20 + OFFSETXSHIELD), space)) {
-        ShieldDestroyWrite(0, VarX - (20 + OFFSETXSHIELD), space, Origine);
-        return 1;
-      }
-    }
-    if((VarX >= 28 + OFFSETXSHIELD) && (VarX <= 35 + OFFSETXSHIELD)) {
-      if(BOOLREAD(1, VarX - (28 + OFFSETXSHIELD), space)) {
-        ShieldDestroyWrite(1, VarX - (28 + OFFSETXSHIELD), space, Origine);
-        return 1;
-      }
-    }
-    if((VarX >= 55 + OFFSETXSHIELD) && (VarX <= 62 + OFFSETXSHIELD)) {
-      if(BOOLREAD(2, VarX - (55 + OFFSETXSHIELD), space)) {
-        ShieldDestroyWrite(2, VarX - (55 + OFFSETXSHIELD), space, Origine);
-        return 1;
-      }
-    }
-    if((VarX >= 63 + OFFSETXSHIELD) && (VarX <= 70 + OFFSETXSHIELD)) {
-      if(BOOLREAD(3, VarX - (63 + OFFSETXSHIELD), space)) {
-        ShieldDestroyWrite(3, VarX - (63 + OFFSETXSHIELD), space, Origine);
-        return 1;
-      }
-    }
-    if((VarX >= 90 + OFFSETXSHIELD) && (VarX <= 97 + OFFSETXSHIELD)) {
-      if(BOOLREAD(4, VarX - (90 + OFFSETXSHIELD), space)) {
-        ShieldDestroyWrite(4, VarX - (90 + OFFSETXSHIELD), space, Origine);
-        return 1;
-      }
-    }
-    if((VarX >= 98 + OFFSETXSHIELD) && (VarX <= 105 + OFFSETXSHIELD)) {
-      if(BOOLREAD(5, VarX - (98 + OFFSETXSHIELD), space)) {
-        ShieldDestroyWrite(5, VarX - (98 + OFFSETXSHIELD), space, Origine);
-        return 1;
-      }
-    }
-  }
-  return 0;
-}
-
-void ShieldDestroyWrite(uint8_t BOOLWRITE, uint8_t line, SPACE *space, uint8_t Origine) {
-  switch(line) {
-    case 0:
-      space->Shield[BOOLWRITE] = space->Shield[BOOLWRITE] - 128;
-      if(Origine == 0) space->MyShootBall = -1;
-      break;
-    case 1:
-      space->Shield[BOOLWRITE] = space->Shield[BOOLWRITE] - 64;
-      if(Origine == 0) space->MyShootBall = -1;
-      break;
-    case 2:
-      space->Shield[BOOLWRITE] = space->Shield[BOOLWRITE] - 32;
-      if(Origine == 0) space->MyShootBall = -1;
-      break;
-    case 3:
-      space->Shield[BOOLWRITE] = space->Shield[BOOLWRITE] - 16;
-      if(Origine == 0) space->MyShootBall = -1;
-      break;
-    case 4:
-      space->Shield[BOOLWRITE] = space->Shield[BOOLWRITE] - 8;
-      if(Origine == 0) space->MyShootBall = -1;
-      break;
-    case 5:
-      space->Shield[BOOLWRITE] = space->Shield[BOOLWRITE] - 4;
-      if(Origine == 0) space->MyShootBall = -1;
-      break;
-    case 6:
-      space->Shield[BOOLWRITE] = space->Shield[BOOLWRITE] - 2;
-      if(Origine == 0) space->MyShootBall = -1;
-      break;
-    case 7:
-      space->Shield[BOOLWRITE] = space->Shield[BOOLWRITE] - 1;
-      if(Origine == 0) space->MyShootBall = -1;
-      break;
-    default:
-      break;
-  }
-}
-
-uint8_t MyShield(uint8_t x, uint8_t y, SPACE *space) {
-  #define OFFSETXSHIELD -1
-  if(y != 6) return 0x00;
-  if((x >= 20 + OFFSETXSHIELD) && (x <= 27 + OFFSETXSHIELD)) {
-    if(BOOLREAD(0, x - (20 + OFFSETXSHIELD), space)) return ShieldBlitz(0, x - (20 + OFFSETXSHIELD));
-    else return 0x00;
-  }
-  if((x >= 28 + OFFSETXSHIELD) && (x <= 35 + OFFSETXSHIELD)) {
-    if(BOOLREAD(1, x - (28 + OFFSETXSHIELD), space)) return ShieldBlitz(1, x - (28 + OFFSETXSHIELD));
-    else return 0x00;
-  }
-  if((x >= 55 + OFFSETXSHIELD) && (x <= 62 + OFFSETXSHIELD)) {
-    if(BOOLREAD(2, x - (55 + OFFSETXSHIELD), space)) return ShieldBlitz(0, x - (55 + OFFSETXSHIELD));
-    else return 0x00;
-  }
-  if((x >= 63 + OFFSETXSHIELD) && (x <= 70 + OFFSETXSHIELD)) {
-    if(BOOLREAD(3, x - (63 + OFFSETXSHIELD), space)) return ShieldBlitz(1, x - (63 + OFFSETXSHIELD));
-    else return 0x00;
-  }
-  if((x >= 90 + OFFSETXSHIELD) && (x <= 97 + OFFSETXSHIELD)) {
-    if(BOOLREAD(4, x - (90 + OFFSETXSHIELD), space)) return ShieldBlitz(0, x - (90 + OFFSETXSHIELD));
-    else return 0x00;
-  }
-  if((x >= 98 + OFFSETXSHIELD) && (x <= 105 + OFFSETXSHIELD)) {
-    if(BOOLREAD(5, x - (98 + OFFSETXSHIELD), space)) return ShieldBlitz(1, x - (98 + OFFSETXSHIELD));
-    else return 0x00;
-  }
-  return 0x00;
-}
-
-uint8_t ShieldBlitz(uint8_t Part, uint8_t LineSH) {
-  uint8_t Var0 = 0;
-  switch(LineSH) {
-    case 0: if(Part == 0) Var0 = 0b11110000; else Var0 = 0b00001111; break;
-    case 1: if(Part == 0) Var0 = 0b11111100; else Var0 = 0b00001111; break;
-    case 2:
-    case 3:
-    case 4:
-    case 5: Var0 = 0b00001111; break;
-    case 6: if(Part == 1) Var0 = 0b11111100; else Var0 = 0b00001111; break;
-    case 7: if(Part == 1) Var0 = 0b11110000; else Var0 = 0b00001111; break;
-    default: Var0 = 0b00000000; break;
-  }
-  return Var0;
-}
-
-uint8_t BOOLREAD(uint8_t SHnum, uint8_t LineSH, SPACE *space) {
-  uint8_t Var0 = 0b10000000 >> LineSH;
-  return((space->Shield[SHnum] & Var0) != 0);
-}
-
-void RemoveExplodOnMonsterGrid(SPACE *space) {
-  uint8_t x, y;
-  for(y=0; y<=3; y++) {
-    for(x=0; x<=5; x++) {
-      if(space->MonsterGrid[y][x] >= 11) space->MonsterGrid[y][x] = -1; 
-      if(space->MonsterGrid[y][x] >= 8)  space->MonsterGrid[y][x] = space->MonsterGrid[y][x] + 1;
-    }
-  }
-}
-
-uint8_t background(uint8_t x, uint8_t y, SPACE *space) {
-  uint8_t scr = space->ScrBackV + x;
-  if(scr > 127) scr = space->ScrBackV + x - 128;
-  return(0xff - back[y * 128 + scr]);
-}
-
-uint8_t Vesso(uint8_t x, uint8_t y, SPACE *space) {
-  if((x - ShipPos >= 0) && (x - ShipPos < 13) && (y==7)) {
-    if(ShipDead == 0) return vesso[x - ShipPos];
-    else return vesso[x - ShipPos + (12 * space->oneFrame)];
-  }
-  return 0;
-}
-
-void UFO_Attack_Check(uint8_t x, SPACE *space) {
-  if(space->MyShootBall == 0) {
-    if((space->MyShootBallxpos >= space->UFOxPos) && (space->MyShootBallxpos <= space->UFOxPos + 14)) {
-      for(x=1; x<100; x++) JOY_sound(x, 1);
-      if(Live < 3) Live++;
-      space->UFOxPos =- 120;
-    }
-  }
-}
-
-uint8_t MyShoot(uint8_t x, uint8_t y, SPACE *space) {
-  if((space->MyShootBallxpos == x) && (y == space->MyShootBall)) {
-    if(space->MyShootBall > -1) space->MyShootBallFrame = !space->MyShootBallFrame;
-    else return 0x00;
-    if(space->MyShootBallFrame == 1) space->MyShootBall--;
-    Monster_Attack_Check(space);
-    UFO_Attack_Check(x, space);
-    return SHOOT[space->MyShootBallFrame];
-  }
-  return 0x00;
-}
-
-void Monster_Attack_Check(SPACE *space) {
-  int8_t Varx = 0, Vary = 0;
-  #define Xmouin   (space->MonsterGroupeXpos) 
-  #define Ymouin   (space->MonsterGroupeYpos << 3) //-space->DecalageY8
-  #define XPlus    (Xmouin + 84)
-  #define YPlus    (Ymouin + (4*8))
-  #define MYSHOOTX (space->MyShootBallxpos)
-  #define MYSHOOTY ((space->MyShootBall << 3) + ((space->MyShootBallFrame + 1) << 2))
-  if((MYSHOOTX >= Xmouin) && (MYSHOOTX <= XPlus) && (MYSHOOTY >= Ymouin) && (MYSHOOTY <= YPlus)) {
-    //enter in the monster zone
-    Vary = (MYSHOOTY - Ymouin + 4) >> 3;
-    Varx = (MYSHOOTX - Xmouin + 7) / 14;
-    if(Varx < 0) Varx = 0;
-    if(Vary < 0) Vary = 0;
-    if(Varx > 5) return;
-    if(Vary > 3) return;
-    if((space->MonsterGrid[Vary][Varx] > -1) && (space->MonsterGrid[Vary][Varx] < 6)) {
-      JOY_sound(50, 10);
-      space->MonsterGrid[Vary][Varx] = 8;
-      space->MyShootBall = -1;
-      SpeedControle(space);
-    }
-    //fin monster zone
-  }
-}
-
-int8_t OuDansLaGrilleMonster(uint8_t x, uint8_t y, SPACE *space) {
-  if(x < space->MonsterGroupeXpos) return -1;
-  if(y < space->MonsterGroupeYpos) return -1;
-  space->PositionDansGrilleMonsterX = (x - space->MonsterGroupeXpos) / 14;
-  space->PositionDansGrilleMonsterY = (y - space->MonsterGroupeYpos);
-  if(space->PositionDansGrilleMonsterX > 5) return -1;
-  if(space->PositionDansGrilleMonsterY > 4) return -1;
-  return 0;
-}
-
-uint8_t SplitSpriteDecalageY(uint8_t Input, uint8_t UPorDOWN, SPACE *space) {
-  if(UPorDOWN) return(Input << space->DecalageY8);
-  else return(Input >> (8 - space->DecalageY8));
-}
-
-uint8_t Murge_Split_UP_DOWN(uint8_t x, SPACE *space) {
-  int8_t SpriteType = -1;
-  int8_t ANIMs = -1;
-  uint8_t Murge1 = 0;
-  uint8_t Murge2 = 0;
-  if(space->DecalageY8 == 0) {
-    SpriteType = space->MonsterGrid[space->PositionDansGrilleMonsterY][space->PositionDansGrilleMonsterX];
-    if(SpriteType < 8) ANIMs = space->anim * 14;
-    else ANIMs = 0;
-    if(SpriteType == -1) return 0x00;
-    return Monsters[(WriteMonster14(x - space->MonsterGroupeXpos) + SpriteType * 14) + ANIMs];
-  }
-  else {
-    //debut
-    if(space->PositionDansGrilleMonsterY == 0) {
-      SpriteType = space->MonsterGrid[space->PositionDansGrilleMonsterY][space->PositionDansGrilleMonsterX];
-      if(SpriteType < 8) ANIMs = space->anim * 14;
-      else ANIMs = 0;
-      if(SpriteType != -1) Murge2 = SplitSpriteDecalageY(Monsters[(WriteMonster14(x - space->MonsterGroupeXpos) + SpriteType * 14) + ANIMs], 1, space);
-      else Murge2 = 0x00;
-      return Murge2;
-    }
-    else {
-      SpriteType = space->MonsterGrid[space->PositionDansGrilleMonsterY - 1][space->PositionDansGrilleMonsterX];
-      if(SpriteType < 8) ANIMs = space->anim * 14;
-      else ANIMs = 0;
-      if(SpriteType != -1) Murge1 = SplitSpriteDecalageY(Monsters[(WriteMonster14(x - space->MonsterGroupeXpos) + SpriteType * 14) + ANIMs], 0, space);
-      else Murge1 = 0x00;
-      SpriteType = space->MonsterGrid[space->PositionDansGrilleMonsterY][space->PositionDansGrilleMonsterX];
-      if(SpriteType < 8) ANIMs = space->anim * 14;
-      else ANIMs = 0;
-      if(SpriteType != -1) Murge2 = SplitSpriteDecalageY(Monsters[(WriteMonster14(x - space->MonsterGroupeXpos) + SpriteType * 14) + ANIMs], 1, space);
-      else Murge2 = 0x00;
-      return(Murge1 | Murge2);
-    }  
-  } //fin
-}
-
-uint8_t WriteMonster14(uint8_t x) {
-  while(x >= 14) x -= 14;
-  return x;
-}
-
-uint8_t Monster(uint8_t x, uint8_t y, SPACE *space) {
-  if(OuDansLaGrilleMonster(x, y, space) != -1) return  Murge_Split_UP_DOWN(x, space);
-  return 0x00;
-}
-
-uint8_t MonsterRefreshMove(SPACE *space) {
-  if(space->Direction == 1) {
-    if(space->MonsterGroupeXpos < space->MonsterOffsetDroite) {
-      space->MonsterGroupeXpos = space->MonsterGroupeXpos + 2;
-      return 0;
-    }
-    else {
-      if(space->DecalageY8 < 7) {
-        space->DecalageY8 = space->DecalageY8 + 4;
-        if(space->DecalageY8 > 7) space->DecalageY8 = 7; 
-      }
-      else {
-        space->MonsterGroupeYpos++;
-        space->DecalageY8 = 0;
-      }
-      space->Direction = 0;
-      return 0;
-    }
-  }
-  else {
-    if(space->MonsterGroupeXpos > space->MonsterOffsetGauche) {
-      space->MonsterGroupeXpos = space->MonsterGroupeXpos - 2;
-      return 0;
-    }
-    else {
-      if(space->DecalageY8 < 7) {
-        space->DecalageY8 = space->DecalageY8 + 4;
-        if(space->DecalageY8 > 7) space->DecalageY8 = 7;
-      }
-      else {
-        space->MonsterGroupeYpos++;
-        space->DecalageY8 = 0;
-      }
-      space->Direction = 1;
-      return 0;
-    }
-  }
-}
-
-void VarResetNewLevel(SPACE *space) {
-  ShieldRemoved = 0;
-  SpeedShootMonster = 0;
-  MONSTERrest = 24;
-  LoadMonstersLevels(LEVELS, space);
-  space->Shield[0] = 255;
-  space->Shield[1] = 255;
-  space->Shield[2] = 255;
-  space->Shield[3] = 255;
-  space->Shield[4] = 255;
-  space->Shield[5] = 255;
-  space->MonsterShoot[0] = 16;
-  space->MonsterShoot[1] = 16;
-  space->UFOxPos = -120;
-
-  space->MyShootBall = -1;
-  space->MyShootBallxpos = 0;
-  space->MyShootBallFrame = 0;
-  space->anim = 0;
-  space->frame = 0;
-  space->PositionDansGrilleMonsterX = 0;
-  space->PositionDansGrilleMonsterY = 0;
-  space->MonsterFloorMax = 3;
-  space->MonsterOffsetGauche = 0;
-  space->MonsterOffsetDroite = 44;
-  space->MonsterGroupeXpos = 20;
-  if(LEVELS > 3) space->MonsterGroupeYpos = 1;
-  else space->MonsterGroupeYpos = 0;
-  space->DecalageY8 = 0;
-  space->frameMax = 8;
-  space->Direction = 1; //1 right 0 gauche
-  space->oneFrame = 0;
+uint8_t background(uint8_t x,uint8_t y){
+return (BackBlitz[((y)*128)+((x))]);
 }
 ```
+## Results:
+### My game video link : https://drive.google.com/drive/folders/1rdA10UzQtw6sXhoqMRsa1_2cZdmTaInu
+
+![kkmelon](https://github.com/shankargoudap/Samsung-RISC-V-Talent--Development-Program/assets/117591903/69d460a2-4968-4567-bde5-605b55ef101c)
 
 
 
-GAMES
-=
-There are many games but i got stucked with the tiny invaders that was my childhood favourite game 
--
 
-Tiny Invaders
--
+
 
 
 
