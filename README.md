@@ -761,7 +761,6 @@ Reference GitHub repo is [![GitHub](https://img.shields.io/badge/-GitHub-181717?
 ## Overview
 The Handheld Gaming Console project integrates a RISC-V microcontroller to create a portable gaming system featuring a OLED display and tactile buttons. This console allows users to play classic games like Snake and Pong, with the RISC-V microcontroller managing game logic, user input, and rendering graphics. Additionally, a sound module provides audio feedback to enhance the gaming experience. This project demonstrates the innovative use of RISC-V technology in creating an immersive and interactive gaming solution.
 ![GameConsole_pic1](https://github.com/shankargoudap/Samsung-RISC-V-Talent--Development-Program/assets/117591903/e3e6c984-1eec-407f-b5c5-ea7b3ac366c7)
-
 ## Components Required
 1. VSDSquadron Mini
 2. Oled Display
